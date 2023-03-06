@@ -54,7 +54,10 @@
       :query-params ::viewer-query-params}}]
 
    (when *assert*
-     ["/debug/icons-preview" :debug-icons-preview])
+     ["/debug"
+      ["/icons-preview" :debug-icons-preview]
+      ["/ui"
+       ["/button" :debug-ui-button]]])
 
    ;; Used for export
    ["/render-sprite/:file-id" :render-sprite]

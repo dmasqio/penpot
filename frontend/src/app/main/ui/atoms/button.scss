@@ -1,0 +1,14 @@
+
+.button {
+  background: purple;
+  border: 1px solid black;
+
+  &.disabled {
+    border: 1px solid red;
+  }
+}
+
+.kk {
+  background: orange;
+}
+

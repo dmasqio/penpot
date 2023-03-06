@@ -5,6 +5,7 @@
 ;; Copyright (c) KALEIDOS INC
 
 (ns app.main.ui.workspace.sidebar
+  (:require-macros [app.main.style :refer [css]])
   (:require
    [app.main.data.workspace :as dw]
    [app.main.refs :as refs]
@@ -46,6 +47,7 @@
 
     [:aside.settings-bar.settings-bar-left {:ref parent-ref
                                             :class (dom/classnames
+                                                    (css :sidebar) true
                                                     :two-row   (<= size 300)
                                                     :three-row (and (> size 300) (<= size 400))
                                                     :four-row  (> size 400))

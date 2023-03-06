@@ -9,6 +9,7 @@
    [app.config :as cf]
    [app.main.refs :as refs]
    [app.main.store :as st]
+   [app.main.ui.atoms.button :as ds-button]
    [app.main.ui.auth :refer [auth]]
    [app.main.ui.auth.verify-token :refer [verify-token]]
    [app.main.ui.context :as ctx]
@@ -16,8 +17,8 @@
    [app.main.ui.dashboard :refer [dashboard]]
    [app.main.ui.icons :as i]
    [app.main.ui.messages :as msgs]
-   [app.main.ui.onboarding]
    [app.main.ui.onboarding.questions]
+   [app.main.ui.onboarding]
    [app.main.ui.releases]
    [app.main.ui.settings :as settings]
    [app.main.ui.static :as static]
@@ -63,6 +64,13 @@
           [:& c/debug-preview]
           [:h1 "Icons"]
           [:& i/debug-icons-preview]])
+
+       :debug-ui-button
+       (when *assert*
+         [:div.debug-ui-components
+          [:h1 "Buttons"]
+          [:& ds-button/button {:text "Normal"}]
+          [:& ds-button/button {:text "Disabled" :disabled true}]])
 
        (:dashboard-search
         :dashboard-projects
