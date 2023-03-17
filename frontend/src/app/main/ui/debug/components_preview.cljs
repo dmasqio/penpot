@@ -5,8 +5,9 @@
 ;; Copyright (c) KALEIDOS INC
 
 (ns app.main.ui.debug.components-preview
-  (:require-macros [app.main.style :refer [css]])
-  (:require [app.main.data.users :as du]
+  (:require-macros [app.main.style :refer [css styles]])
+  (:require [app.common.data :as d]
+            [app.main.data.users :as du]
             [app.main.refs :as refs]
             [app.main.store :as st]
             [app.main.ui.components.tests.test-component :as tc]
@@ -25,15 +26,15 @@
                           data (assoc initial :theme theme)]
                       (st/emit! (du/update-profile data))))
 
-        colors [:bg-primary 
-                :bg-secondary 
-                :bg-tertiary 
-                :bg-cuaternary 
-                :fg-primary 
-                :fg-secondary 
-                :acc 
-                :acc-muted 
-                :acc-secondary 
+        colors [:bg-primary
+                :bg-secondary
+                :bg-tertiary
+                :bg-cuaternary
+                :fg-primary
+                :fg-secondary
+                :acc
+                :acc-muted
+                :acc-secondary
                 :acc-tertiary]]
 
     [:section.debug-components-preview
@@ -47,43 +48,13 @@
        [:option {:label "Penpot Dark (default)" :value "default"}]
        [:option  {:label "Penpot Light" :value "light"}]]
       [:div {:class (css :wrapper)}
-      ;;  (for [color colors]
-      ;;    [:div {:class (dom/classnames (css color) true
-      ;;                                  (css :rect) true)}
-      ;;     (d/name color)])
-       [:div {:class (dom/classnames (css :bg-primary) true
-                                     (css :rect) true)}
-        "background primary"]
-       [:div {:class (dom/classnames (css :bg-secondary) true
-                                     (css :rect) true)}
-        "background-secondary"]
-       [:div {:class (dom/classnames (css :bg-tertiary) true
-                                     (css :rect) true)}
-        "background-tertiary"]
-       [:div {:class (dom/classnames (css :bg-cuaternary) true
-                                     (css :rect) true)}
-        "background-cuaternary"]
-       [:div {:class (dom/classnames (css :fg-primary) true
-                                     (css :rect) true)}
-        "foreground-primary"]
-       [:div {:class (dom/classnames (css :fg-secondary) true
-                                     (css :rect) true)}
-        "foreground-secondary"]
-       [:div {:class (dom/classnames (css :acc) true
-                                     (css :rect) true)}
-        "accent-primary"]
-       [:div {:class (dom/classnames (css :acc-muted) true
-                                     (css :rect) true)}
-        "accent-primary-muted"]
-       [:div {:class (dom/classnames (css :acc-secondary) true
-                                     (css :rect) true)}
-        "accent-secondary"]
-       [:div {:class (dom/classnames (css :acc-tertiary) true
-                                     (css :rect) true)}
-        "accent-tertiary"]]]
+       (let [css (styles)]
+         (for [color colors]
+           [:div {:class (dom/classnames (get css color) true
+                                         (get css :rect) true)}
+            (d/name color)]))]]
      [:div {:class (css :components-row)}
-      
-      [:& tc/test-component
-       {:action #(prn "ey soy un botón") :name "púlsame"}]
-      
-      ]]))
+      [:h2 {:class (css :title)} "Components"]
+      [:div {:class (css :component-wrapper)}
+       [:& tc/test-component
+        {:action #(prn "ey soy un botón") :name "Click me"}]]]]))

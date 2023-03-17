@@ -4,7 +4,14 @@
 //
 // Copyright (c) KALEIDOS INC
 
-$spacing-4: 0.25rem;
+@use "sass:math";
+
+:root {
+  --spacing-4: 0.25rem;
+}
+
+$spacing-2: math.div(0.25rem, 2);
+$spacing-4: var(--spacing-4);
 $spacing-8: calc(var(--spacing-4) * 2);
 $spacing-12: calc(var(--spacing-4) * 3);
 $spacing-16: calc(var(--spacing-4) * 4);

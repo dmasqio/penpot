@@ -258,6 +258,7 @@
 (def brand-gitlab (icon-xref :brand-gitlab))
 (def brand-google (icon-xref :brand-google))
 
+(def arrow-refactor (icon-xref :arrow-refactor))
 (def loader-pencil
   (mf/html
    [:svg

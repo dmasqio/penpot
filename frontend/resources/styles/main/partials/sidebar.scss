@@ -9,15 +9,6 @@
   border-left: 1px solid $color-gray-60;
   position: relative;
 
-  &.settings-bar-left {
-    border-left: none;
-    border-right: 1px solid $color-gray-60;
-
-    & .tab-container-tabs {
-      padding-left: 1.5rem;
-    }
-  }
-
   .settings-bar-inside {
     display: grid;
     grid-template-columns: 100%;
@@ -316,7 +307,7 @@
   }
 }
 
-button.collapse-sidebar {
+button.collapsed-sidebar {
   background: none;
   border: none;
   cursor: pointer;

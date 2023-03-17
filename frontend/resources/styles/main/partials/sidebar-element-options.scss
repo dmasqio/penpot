@@ -349,13 +349,13 @@
       font-size: $fs14;
       display: flex;
       gap: 0 10px;
-      justify-content: start;
+      justify-content: flex-start;
       padding: $size-2;
 
       span {
         color: $color-gray-20;
         display: flex;
-        justify-content: start;
+        justify-content: flex-start;
         align-items: center;
       }
 

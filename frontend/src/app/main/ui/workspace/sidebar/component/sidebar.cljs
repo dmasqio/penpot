@@ -4,14 +4,14 @@
 ;;
 ;; Copyright (c) KALEIDOS INC
 
-(ns app.main.ui.workspace.sidebar
+(ns app.main.ui.workspace.sidebar.component.sidebar
+  (:require-macros [app.main.style :refer [css styles]])
   (:require
    [app.main.data.workspace :as dw]
    [app.main.refs :as refs]
    [app.main.store :as st]
-   [app.main.ui.components.tab-container :refer [tab-container tab-element]]
+   [app.main.ui.components.tab-container.tab-container :refer [tab-container tab-element]]
    [app.main.ui.hooks.resize :refer [use-resize-hook]]
-   [app.main.ui.icons :as i]
    [app.main.ui.workspace.comments :refer [comments-sidebar]]
    [app.main.ui.workspace.sidebar.assets :refer [assets-toolbox]]
    [app.main.ui.workspace.sidebar.debug :refer [debug-panel]]
@@ -44,17 +44,14 @@
         (fn []
           (st/emit! (dw/toggle-layout-flag :collapse-left-sidebar)))]
 
-    [:aside.settings-bar.settings-bar-left {:ref parent-ref
-                                            :class (dom/classnames
-                                                    :two-row   (<= size 300)
-                                                    :three-row (and (> size 300) (<= size 400))
-                                                    :four-row  (> size 400))
-                                            :style #js {"--width" (str size "px")}}
-     [:div.resize-area {:on-pointer-down on-pointer-down
+    [:aside {:ref parent-ref
+             :class (dom/classnames (css :left-settings-bar) true)
+             :style #js {"--width" (str size "px")}}
+     [:div {:on-pointer-down on-pointer-down
                         :on-lost-pointer-capture on-lost-pointer-capture
-                        :on-mouse-move on-mouse-move}]
-
-     [:div.settings-bar-inside
+                        :on-mouse-move on-mouse-move
+                        :class (dom/classnames (css :resize-area) true)}]
+     [:div {:class (dom/classnames (css :settings-bar-inside) true)}
       (cond
         shortcuts?
         [:& shortcuts-container]
@@ -64,13 +61,11 @@
 
         :else
         [:*
-         [:button.collapse-sidebar
-          {:on-click handle-collapse
-           :aria-label (tr "workspace.sidebar.collapse")}
-          i/arrow-slide]
          [:& tab-container {:on-change-tab #(st/emit! (dw/go-to-layout %))
                             :selected section
-                            :shortcuts? shortcuts?}
+                            :shortcuts? shortcuts?
+                            :collapsable? true
+                            :handle-collapse handle-collapse}
 
           [:& tab-element {:id :layers :title (tr "workspace.sidebar.layers")}
            [:div.layers-tab
@@ -79,7 +74,10 @@
 
           (when-not mode-inspect?
             [:& tab-element {:id :assets :title (tr "workspace.toolbar.assets")}
-             [:& assets-toolbox]])]])]]))
+             [:& assets-toolbox]])]
+         
+         
+         ])]]))
 
 ;; --- Right Sidebar (Component)
 

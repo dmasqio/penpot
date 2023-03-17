@@ -26,7 +26,7 @@
    [app.main.ui.workspace.left-toolbar :refer [left-toolbar]]
    [app.main.ui.workspace.libraries]
    [app.main.ui.workspace.nudge]
-   [app.main.ui.workspace.sidebar :refer [left-sidebar right-sidebar]]
+   [app.main.ui.workspace.sidebar.component.sidebar :refer [left-sidebar right-sidebar]]
    [app.main.ui.workspace.sidebar.history :refer [history-toolbox]]
    [app.main.ui.workspace.textpalette :refer [textpalette]]
    [app.main.ui.workspace.viewport :refer [viewport]]
@@ -89,7 +89,7 @@
        [:*
         [:& left-toolbar {:layout layout}]
         (if (:collapse-left-sidebar layout)
-          [:button.collapse-sidebar.collapsed {:on-click #(st/emit! (dw/toggle-layout-flag :collapse-left-sidebar))
+          [:button.collapsed-sidebar.collapsed {:on-click #(st/emit! (dw/toggle-layout-flag :collapse-left-sidebar))
                                                :aria-label (tr "workspace.sidebar.expand")}
            i/arrow-slide]
           [:& left-sidebar {:layout layout}])
