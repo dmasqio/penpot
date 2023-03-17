@@ -67,11 +67,11 @@
       (add-undo-entry state entry))))
 
 (defn- accumulate-undo-entry
-  [state {:keys [undo-changes redo-changes group-id]}]
+  [state {:keys [undo-changes redo-changes undo-group]}]
   (-> state
       (update-in [:workspace-undo :transaction :undo-changes] #(into undo-changes %))
       (update-in [:workspace-undo :transaction :redo-changes] #(into % redo-changes))
-      (assoc-in [:workspace-undo :transaction :group-id] group-id)))
+      (assoc-in [:workspace-undo :transaction :undo-group] undo-group)))
 
 (defn append-undo
   [entry stack?]
@@ -79,39 +79,51 @@
   (ptk/reify ::append-undo
     ptk/UpdateEvent
     (update [_ state]
-      (cond
-        (and (get-in state [:workspace-undo :transaction])
-             (or (not stack?)
-                 (d/not-empty? (get-in state [:workspace-undo :transaction :undo-changes]))
-                 (d/not-empty? (get-in state [:workspace-undo :transaction :redo-changes]))))
-        (accumulate-undo-entry state entry)
+     (let [current-group (get-in state [:workspace-undo :transaction-group])
+           entry (cond-> entry (some? current-group) (assoc :undo-group current-group))]
+       (cond
+         (and (get-in state [:workspace-undo :transaction])
+              (or (not stack?)
+                  (d/not-empty? (get-in state [:workspace-undo :transaction :undo-changes]))
+                  (d/not-empty? (get-in state [:workspace-undo :transaction :redo-changes]))))
+         (accumulate-undo-entry state entry)
 
-        stack?
-        (stack-undo-entry state entry)
+         stack?
+         (stack-undo-entry state entry)
 
-        :else
-        (add-undo-entry state entry)))))
+         :else
+         (add-undo-entry state entry))))))
 
 (def empty-tx
   {:undo-changes [] :redo-changes []})
 
-(defn start-undo-transaction [id]
-  (ptk/reify ::start-undo-transaction
-    ptk/UpdateEvent
-    (update [_ state]
+(defn start-undo-transaction
+  "Start a transaction, so that every changes inside are added together in a single undo entry.
+   
+   If you give an undo group, all changes are added with it. This way you can pack some transactions
+   in a group to undo or redo them in a single step."
+  ([id] (start-undo-transaction id nil))
+  ([id undo-group]
+   (ptk/reify ::start-undo-transaction
+     ptk/UpdateEvent
+     (update [_ state]
       ;; We commit the old transaction before starting the new one
-      (let [current-tx (get-in state [:workspace-undo :transaction])
-            pending-tx (get-in state [:workspace-undo :transactions-pending])]
-        (cond-> state
-          (nil? current-tx)  (assoc-in [:workspace-undo :transaction] empty-tx)
-          (nil? pending-tx)  (assoc-in [:workspace-undo :transactions-pending] #{id})
-          (some? pending-tx) (update-in [:workspace-undo :transactions-pending] conj id))))))
+       (let [current-tx    (get-in state [:workspace-undo :transaction])
+             pending-tx    (get-in state [:workspace-undo :transactions-pending])
+             current-group (get-in state [:workspace-undo :transaction-group])]
+         (cond-> state
+           (nil? current-tx)  (assoc-in [:workspace-undo :transaction] empty-tx)
+           (nil? pending-tx)  (assoc-in [:workspace-undo :transactions-pending] #{id})
+           (some? pending-tx) (update-in [:workspace-undo :transactions-pending] conj id)
+
+           (and (nil? current-group) (some? undo-group))
+           (assoc-in [:workspace-undo :transaction-group] undo-group)))))))
 
 (defn discard-undo-transaction []
   (ptk/reify ::discard-undo-transaction
     ptk/UpdateEvent
     (update [_ state]
-      (update state :workspace-undo dissoc :transaction :transactions-pending))))
+      (update state :workspace-undo dissoc :transaction :transactions-pending :transaction-group))))
 
 (defn commit-undo-transaction [id]
   (ptk/reify ::commit-undo-transaction

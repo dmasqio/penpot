@@ -14,6 +14,7 @@
    [app.common.types.components-list :as ctkl]
    [app.common.types.file :as ctf]
    [app.common.types.page :as ctp]
+   [app.common.uuid :as uuid]
    [app.main.data.events :as ev]
    [app.main.data.modal :as modal]
    [app.main.data.workspace :as dw]
@@ -429,7 +430,7 @@
                                        (dw/show-component-in-assets component-id)
                                        (dw/go-to-component component-id)))
         do-navigate-component-file #(st/emit! (dwl/nav-to-component-file component-file))
-        do-update-component #(st/emit! (dwl/update-component-sync shape-id component-file))
+        do-update-component #(st/emit! (dwl/update-component-sync shape-id component-file (uuid/next)))
         do-update-component-in-bulk #(st/emit! (dwl/update-component-in-bulk component-shapes component-file))
         do-restore-component #(st/emit! (dwl/restore-component component-file component-id))
 

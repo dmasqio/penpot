@@ -6,8 +6,9 @@
 
 (ns app.main.ui.workspace.sidebar.options.menus.component
   (:require
-       [app.common.types.components-list :as ctkl]
+    [app.common.types.components-list :as ctkl]
     [app.common.types.file :as ctf]
+    [app.common.uuid :as uuid]
     [app.main.data.modal :as modal]
     [app.main.data.workspace :as dw]
     [app.main.data.workspace.libraries :as dwl]
@@ -62,7 +63,7 @@
         #(st/emit! (dwl/reset-component id))
 
         do-update-component
-        #(st/emit! (dwl/update-component-sync id library-id))
+        #(st/emit! (dwl/update-component-sync id library-id (uuid/next)))
 
         do-restore-component
         #(st/emit! (dwl/restore-component library-id component-id))

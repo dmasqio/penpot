@@ -636,16 +636,16 @@
                                           :file-id file-id))))))))))
 
 (defn update-component-sync
-  [shape-id file-id]
+  [shape-id file-id undo-group]
   (ptk/reify ::update-component-sync
     ptk/WatchEvent
     (watch [_ state _]
       (let [current-file-id (:current-file-id state)
             page            (wsh/lookup-page state)
             shape           (ctn/get-shape page shape-id)
-            undo-id (js/Symbol)]
+            undo-id         (js/Symbol)]
         (rx/of
-         (dwu/start-undo-transaction undo-id)
+         (dwu/start-undo-transaction undo-id undo-group)
          (update-component shape-id)
          (sync-file current-file-id file-id :components (:component-id shape))
          (when (not= current-file-id file-id)
@@ -660,7 +660,7 @@
       (let [undo-id (js/Symbol)]
        (rx/concat
        (rx/of (dwu/start-undo-transaction undo-id))
-       (rx/map #(update-component-sync (:id %) file-id) (rx/from shapes))
+       (rx/map #(update-component-sync (:id %) file-id (uuid/next)) (rx/from shapes))
        (rx/of (dwu/commit-undo-transaction undo-id)))))))
 
 (declare sync-file-2nd-stage)
@@ -843,15 +843,16 @@
 
             check-changes
             (fn [[event data]]
-              (let [{:keys [changes save-undo?]} (deref event)
+              (let [{:keys [changes save-undo? undo-group]} (deref event)
                     components-changed (reduce #(into %1 (ch/components-changed data %2))
                                                #{}
                                                changes)]
                 (when (and (d/not-empty? components-changed) save-undo?)
+                  (js/console.log "event" (clj->js event))
                   (log/info :msg "DETECTED COMPONENTS CHANGED"
                             :ids (map str components-changed))
                   (run! st/emit!
-                        (map #(update-component-sync % (:id data))
+                        (map #(update-component-sync % (:id data) undo-group)
                              components-changed)))))]
 
         (when components-v2
