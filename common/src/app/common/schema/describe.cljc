@@ -10,6 +10,8 @@
    [cuerdas.core :as str]
    [malli.core :as m]))
 
+(def ^:dynamic *definitions* nil)
+
 (declare describe)
 (declare describe*)
 
@@ -65,17 +67,10 @@
 (defmethod visit :>= [_ _ [value] _] (str ">= " value))
 (defmethod visit :< [_ _ [value] _] (str "< " value))
 (defmethod visit :<= [_ _ [value] _] (str "<= " value))
-(defmethod visit := [_ _ [value] _] (str "must equal " value))
+(defmethod visit := [_ _ [value] _] (str "== '" value "'"))
 (defmethod visit :not= [_ _ [value] _] (str "not equal " value))
 (defmethod visit :not [_ _ children _] {:not (last children)})
 
-(defmethod visit :multi [_ s children _]
-  (let [dispatcher (or (-> s m/properties :dispatch-description)
-                       (-> s m/properties :dispatch))]
-    (str "one of "
-         (-diamond
-          (str/join " | " (map (fn [[title _ shape]] (str title " = " shape)) children)))
-         " dispatched by " dispatcher)))
 
 (defn -of-clause [children] (when children (str " of " (first children))))
 
@@ -125,7 +120,6 @@
 (defmethod visit :repeat [_ schema children _]
   (str "repeat " (-diamond (first children)) (-repeat-suffix schema)))
 
-
 (defn minmax-suffix [schema]
   (let [{:keys [min max]} (-> schema m/properties)]
     (cond
@@ -142,28 +136,74 @@
 (defmethod visit :map-of [_ _ children _]
   (str "map[" (first children) "," (second children) "]"))
 
+(defn pad
+  [data prefix]
+  (with-out-str
+    (doseq [item (str/lines data)]
+      (println prefix item))))
+
+
+(defmethod visit :multi [_ s children options]
+  (let [dispatcher (or (-> s m/properties :dispatch-description)
+                       (-> s m/properties :dispatch))
+        props    (m/properties s)
+        title    (:title props)
+        level    (::level options 1)
+        padding  (->> (repeat "  ") (take level) (str/join ""))
+        entries  (->> children
+                      (map (fn [[title _ shape]] (str shape)))
+                      (str/join " | "))]
+
+
+    ;; (println entries)
+
+    (str/trim
+     (cond-> "multi object"
+        (some? title) (str " " (str/capital (str/camel title)))
+        :always (str " {\n" padding entries "\n" (ex/ignoring (subs padding 2)) "}")
+        :always (str " [dispatched by " dispatcher "]")))))
+
+
+
+         ;; #_(with-out-str
+         ;;   (doseq [[_ _ shape] children]
+         ;;     (println (pad shape "  "))))
+         ;; "}")))
+
+
+         ;; (str/join " | " (map (fn [[title _ shape]] (str shape)) children)))))
+
+
+
 (defmethod visit :map [_ schema children options]
   (let [optional (into #{} (comp (filter (m/-comp :optional second))
                                  (map first))
                        children)
 
-        title    (-> schema m/properties :title)
-
-
+        props    (m/properties schema)
+        title    (:title props)
         closed?  (:closed (m/properties schema))
         level    (::level options 1)
-        padding  (->> (repeat "  ") (take level) (str/join ""))
+        padding  (if (::inline props)
+                   "  "
+                   (->> (repeat "  ") (take level) (str/join "")))
         entries  (->> children
                       (map (fn [[k _ s]]
                              (str padding (str/camel k)
                                   (when (contains? optional k) "?")
                                   ": " s )))
-                      (str/join ",\n"))]
-    (str/trim
-     (cond-> "object"
-       (some? title) (str " " (str/capital (str/camel title)))
-       closed?       (str "!")
-       (seq entries) (str " {\n" entries "\n" (ex/ignoring (subs padding 2)) "} ")))))
+                      (str/join ",\n"))
+
+        orepr    (str/trim
+                  (cond-> "object"
+                    (some? title) (str " " (str/capital (str/camel title)))
+                    closed?       (str "!")
+                    (seq entries) (str " {\n" entries "\n" (ex/ignoring (subs padding 2)) "} ")))]
+    (if (::inline props true)
+      (do
+        (swap! *definitions* conj orepr)
+        (str/capital (str/camel title)))
+      orepr)))
 
 (defmethod visit :schema [_ schema children options]
   (visit ::m/schema schema children options))
@@ -198,8 +238,14 @@
    (describe s nil))
   ([s options]
    (let [type    (m/type s)
+         defs    (atom #{})
          s       (cond-> s
                    (= type ::m/schema)
                    (m/deref))
          options (assoc options ::m/walk-entry-vals true ::level 1)]
-     (str/trim (describe* s options)))))
+     (binding [*definitions* defs]
+       (str (str/trim (describe* s options))
+            (when-let [defs @*definitions*]
+              (str "\n"
+                   (->> defs
+                        (str/join "\n")))))))))
