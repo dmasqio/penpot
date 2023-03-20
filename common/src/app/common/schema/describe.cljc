@@ -8,9 +8,11 @@
   (:require
    [app.common.exceptions :as ex]
    [cuerdas.core :as str]
-   [malli.core :as m]))
+   [malli.core :as m]
+   [malli.util :as mu]))
 
 (def ^:dynamic *definitions* nil)
+(def ^:dynamic *path* nil)
 
 (declare describe)
 (declare describe*)
@@ -182,9 +184,11 @@
 
         props    (m/properties schema)
         title    (:title props)
-        closed?  (:closed (m/properties schema))
+        closed?  (:closed props)
+        root?    (::root props)
         level    (::level options 1)
-        padding  (if (::inline props)
+        inline?  (::inline props true)
+        padding  (if inline?
                    "  "
                    (->> (repeat "  ") (take level) (str/join "")))
         entries  (->> children
@@ -199,7 +203,9 @@
                     (some? title) (str " " (str/capital (str/camel title)))
                     closed?       (str "!")
                     (seq entries) (str " {\n" entries "\n" (ex/ignoring (subs padding 2)) "} ")))]
-    (if (::inline props true)
+
+    ;; (prn "MAP" props)
+    (if (and (not root?) inline?)
       (do
         (swap! *definitions* conj orepr)
         (str/capital (str/camel title)))
@@ -222,14 +228,26 @@
                  (m/type-properties schema'))]
 
     (if-let [ref (m/-ref schema)]
-      (cond-> (or (:title props) (str/camel ref))
-        (some? result)
-        (str " -> " result))
+      (or (:title props) (str/camel ref))
       result)))
+
+;; (cond-> (or (:title props) (str/camel ref))
+;;         (some? result)
+;;         (str " -> " result))
+
+(defn visit*
+  [type schema children options]
+  (try
+    ;; (prn "=>" type)
+    (swap! *path* conj type)
+    (visit type schema children options)
+    (finally
+      ;; (prn "<=" type)
+      (swap! *path* pop))))
 
 (defn describe* [s options]
   (letfn [(walk-fn [schema _ children options]
-            (visit (m/type schema) schema children options))]
+            (visit* (m/type schema) schema children options))]
     (m/walk s walk-fn options)))
 
 (defn describe
@@ -241,11 +259,14 @@
          defs    (atom #{})
          s       (cond-> s
                    (= type ::m/schema)
-                   (m/deref))
+                   (m/deref)
+                   :always
+                   (mu/update-properties assoc ::root true))
          options (assoc options ::m/walk-entry-vals true ::level 1)]
-     (binding [*definitions* defs]
+     (binding [*definitions* defs
+               *path* (atom [])]
        (str (str/trim (describe* s options))
-            (when-let [defs @*definitions*]
+            #_(when-let [defs @*definitions*]
               (str "\n"
                    (->> defs
                         (str/join "\n")))))))))

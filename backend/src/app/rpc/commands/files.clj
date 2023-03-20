@@ -271,10 +271,19 @@
    [:data {:optional true} :any]])
 
 (sm/def! ::file-with-permissions
-  [:merge {:title "FileWithPermissions2"}
+  (sm/merge
    ::file
    [:map {:title "FileWithPermissions"}
-    [:permissions ::perms/permissions]]])
+    [:permissions [:map {:title "Permissions"}
+                   [:type {:gen/elements [:membership :share-link]} :keyword]
+                   [:is-owner :boolean]
+                   [:is-admin :boolean]
+                   [:can-edit :boolean]
+                   [:can-read :boolean]
+                   [:is-logged :boolean]]]]))
+
+
+    ;; [:permissions ::perms/permissions]]))
 
 
 (sm/def! ::get-file
