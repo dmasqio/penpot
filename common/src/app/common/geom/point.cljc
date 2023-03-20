@@ -16,6 +16,9 @@
    [app.common.exceptions :as ex]
    [app.common.math :as mth]
    [app.common.spec :as us]
+   [app.common.schema :as sm]
+   [app.common.schema.openapi :as-alias oapi]
+   [cuerdas.core :as str]
    [clojure.spec.alpha :as s]
    [clojure.test.check.generators :as tgen]))
 
@@ -37,6 +40,27 @@
 
 (s/def ::point-attrs
   (s/keys :req-un [::x ::y]))
+
+(sm/def! ::point
+  (letfn [(decode [s]
+            (let [[x y] (->> s (str/split ",") (map parse-double))]
+              (->Point x y)))
+          (encode [p]
+            ;;FIXME performance
+            (dm/str (:x p) "," (:y p)))]
+    {:type ::points
+     :pred point?
+     :type-properties
+     {:title "point"
+      :description "Point"
+      :error/message "expected a valid point"
+      :gen/gen (tgen/let [x tgen/small-integer
+                          y tgen/small-integer]
+                 (->Point x y))
+      ::oapi/type "integer"
+      ::oapi/format "int64"
+      ::sm/decode decode
+      ::sm/encode encode}}))
 
 (s/def ::point
   (s/with-gen (s/and ::point-attrs point?)

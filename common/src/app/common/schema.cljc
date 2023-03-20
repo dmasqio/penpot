@@ -29,16 +29,16 @@
    (mr/mutable-registry registry)))
 
 (defn validate
-  [schema value]
-  (m/validate schema value {:registry default-registry}))
+  [s value]
+  (m/validate s value {:registry default-registry}))
 
 (defn explain
-  [schema value]
-  (m/explain schema value {:registry default-registry}))
+  [s value]
+  (m/explain s value {:registry default-registry}))
 
 (defn explain-data
-  [schema value]
-  (mu/explain-data schema value {:registry default-registry}))
+  [s value]
+  (mu/explain-data s value {:registry default-registry}))
 
 (defn schema?
   [o]
@@ -53,8 +53,8 @@
   (me/humanize exp))
 
 (defn form
-  [schema]
-  (m/form schema))
+  [s]
+  (m/form s))
 
 (defn merge
   [& items]
@@ -74,12 +74,12 @@
 
 (def input-transformer
   (let [default-decoder
-        {:compile (fn [schema _registry]
-                    (let [props (m/type-properties schema)]
+        {:compile (fn [s _registry]
+                    (let [props (m/type-properties s)]
                       (::decode props)))}
         default-encoder
-        {:compile (fn [schema _]
-                    (let [props (m/type-properties schema)]
+        {:compile (fn [s _]
+                    (let [props (m/type-properties s)]
                       (::encode props)))}
 
         coders {:vector mt/-sequential-or-set->vector
@@ -101,29 +101,34 @@
      )))
 
 (def output-transformer
-  (mt/transformer
-   #_(mt/json-transformer)
-   (mt/strip-extra-keys-transformer)))
+  (mt/key-transformer {:encode str/camel
+                       :decode (comp keyword str/kebab)}))
 
 (defn validator
-  [schema]
-  (m/validator schema))
+  [s]
+  (-> s schema m/validator))
 
 (defn explainer
-  [schema]
-  (m/explainer schema))
+  [s]
+  (-> s schema m/explainer))
+
+(defn encode
+  ([s val transformer]
+   (m/encode s val {:registry default-registry} transformer))
+  ([s val options transformer]
+   (m/encode s val options transformer)))
 
 (defn decode
-  ([schema val transformer]
-   (m/decode schema val transformer))
-  ([schema val options transformer]
-   (m/decode schema val options transformer)))
+  ([s val transformer]
+   (m/decode s val {:registry default-registry} transformer))
+  ([s val options transformer]
+   (m/decode s val options transformer)))
 
 (defn decoder
-  ([schema transformer]
-   (m/decoder schema transformer))
-  ([schema options transformer]
-   (m/decoder schema options transformer)))
+  ([s transformer]
+   (m/decoder s  {:registry default-registry} transformer))
+  ([s options transformer]
+   (m/decoder s options transformer)))
 
 (defn humanize-data
   [explain-data]
@@ -168,8 +173,8 @@
   ([registry s] (schema (mr/schema registry s))))
 
 (defn generator
-  [schema]
-  (mg/generator schema {:registry default-registry}))
+  [s]
+  (mg/generator s {:registry default-registry}))
 
 (defn generate
   [s]
@@ -266,19 +271,20 @@
    (remove str/blank?)))
 
 (def! ::set-of-strings
-  {:type ::set-of-strings
-   :pred #(and (set? %) (every? string? %))
-   :type-properties
-   {:title "set[type=string]"
-    :description "Set of Strings"
-    :error/message "should be an set of strings"
-    :gen/gen (tgen/set (generator :string))
-    ::oapi/type "array"
-    ::oapi/format "set"
-    ::oapi/items {:type "string"}
-    ::oapi/unique-items true
-    ::decode (fn [v]
-               (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}})
+  (m/-simple-schema
+   {:type ::set-of-strings
+    :pred #(and (set? %) (every? string? %))
+    :type-properties
+    {:title "set[type=string]"
+     :description "Set of Strings"
+     :error/message "should be an set of strings"
+     :gen/gen (tgen/set (generator :string))
+     ::oapi/type "array"
+     ::oapi/format "set"
+     ::oapi/items {:type "string"}
+     ::oapi/unique-items true
+     ::decode (fn [v]
+                (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}}))
 
 (def max-safe-int (int 1e6))
 (def min-safe-int (int -1e6))
@@ -294,6 +300,18 @@
     ::oapi/type "integer"
     ::oapi/format "int64"
     ::decode parse-long}})
+
+(def! ::safe-number
+  {:type ::safe-number
+   :pred #(and (number? %) (>= max-safe-int %) (>= % min-safe-int))
+   :type-properties
+   {:title "number"
+    :description "Safe Number"
+    :error/message "expected to be number in safe range"
+    :gen/gen (generator :int)
+    ::oapi/type "number"
+    ::oapi/format "double"
+    ::decode parse-double}})
 
 ;; --- GENERATORS
 

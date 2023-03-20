@@ -78,6 +78,7 @@
 
     [:mod-obj
      [:map {:title "ModObjChange"}
+      [:type [:= :mod-obj]]
       [:id ::sm/uuid]
       [:page-id {:optional true} ::sm/uuid]
       [:component-id {:optional true} ::sm/uuid]
@@ -85,6 +86,7 @@
 
     [:del-obj
      [:map {:title "DelObjChange"}
+      [:type [:= :del-obj]]
       [:id ::sm/uuid]
       [:page-id {:optional true} ::sm/uuid]
       [:component-id {:optional true} ::sm/uuid]
@@ -92,6 +94,7 @@
 
     [:mov-objects
      [:map {:title "MovObjectsChange"}
+      [:type [:= :mov-objects]]
       [:page-id {:optional true} ::sm/uuid]
       [:component-id {:optional true} ::sm/uuid]
       [:ignore-touched {:optional true} :boolean]
@@ -102,60 +105,73 @@
 
     [:add-page
      [:map {:title "AddPageChange"}
+      [:type [:= :add-page]]
       [:id ::sm/uuid]
       [:name :string]
       [:page :any]]]
 
     [:mod-page
      [:map {:title "ModPageChange"}
+      [:type [:= :mod-page]]
       [:id ::sm/uuid]
       [:name :string]]]
 
     [:del-page
      [:map {:title "DelPageChange"}
+      [:type [:= :del-page]]
       [:id ::sm/uuid]]]
 
     [:mov-page
      [:map {:title "MovPageChange"}
+      [:type [:= :mov-page]]
       [:id ::sm/uuid]
       [:index :int]]]
 
     [:reg-objects
      [:map {:title "RegObjectsChange"}
+      [:type [:= :reg-objects]]
       [:page-id {:optional true} ::sm/uuid]
       [:component-id {:optional true} ::sm/uuid]
       [:shapes [:vector ::sm/uuid]]]]
 
     [:add-color
      [:map {:title "AddColorChange"}
+      [:type [:= :add-color]]
       [:color :any]]]
 
     [:mod-color
      [:map {:title "ModColorChange"}
+      [:type [:= :mod-color]]
       [:color :any]]]
 
     [:del-color
      [:map {:title "DelColorChange"}
+      [:type [:= :del-color]]
       [:id ::sm/uuid]]]
 
     [:add-recent-color
      [:map {:title "AddRecentColorChange"}
+      [:type [:= :add-recent-color]]
       [:color :any]]]
 
     [:add-media
      [:map {:title "AddMediaChange"}
+      [:type [:= :add-media]]
       [:object ::ctfm/media-object]]]
 
     [:mod-media
      [:map {:title "ModMediaChange"}
+      [:type [:= :mod-media]]
       [:object ::ctfm/media-object]]]
 
     [:del-media
      [:map {:title "DelMediaChange"}
+      [:type [:= :del-media]]
       [:id ::sm/uuid]]]
 
     [:add-component
      [:map {:title "AddComponentChange"}
+      [:type [:= :add-component]]
       [:id ::sm/uuid]
       [:name :string]
       [:shapes [:vector :any]]
@@ -163,27 +179,30 @@
 
     [:mod-component
      [:map {:title "ModCompoenentChange"}
+      [:type [:= :mod-component]]
       [:id ::sm/uuid]
       [:shapes {:optional true} [:vector :any]]
       [:name {:optional true} :string]]]
 
     [:del-component
      [:map {:title "DelComponentChange"}
+      [:type [:= :del-component]]
       [:id ::sm/uuid]
-      ;; FIXME: remove `?` from the prop
       [:skip-undelete? {:optional true} :boolean]]]
 
     [:restore-component
      [:map {:title "RestoreComponentChange"}
+      [:type [:= :restore-component]]
       [:id ::sm/uuid]]]
 
     [:purge-component
      [:map {:title "PurgeComponentChange"}
+      [:type [:= :purge-component]]
       [:id ::sm/uuid]]]
 
-    [:add-typography :any]
-    [:mod-typography :any]
-    [:del-typography :any]
+    ;; [:add-typography :any]
+    ;; [:mod-typography :any]
+    ;; [:del-typography :any]
 
     ]])
 

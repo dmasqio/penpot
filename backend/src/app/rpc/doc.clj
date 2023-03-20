@@ -101,19 +101,23 @@
 (defn prepare-openapi-context
   [methods]
   (letfn [(gen-response-doc [tsx schema]
-            {:default
-             {:description "A default response"
-              :content
-              {"application/json"
-               {:schema tsx
-                :example (sm/generate schema)}}}})
+            (let [example (sm/generate schema)
+                  example (sm/encode schema example {:registry sm/default-registry} sm/output-transformer)]
+              {:default
+               {:description "A default response"
+                :content
+                {"application/json"
+                 {:schema tsx
+                  :example example}}}}))
 
           (gen-params-doc [tsx schema]
-            {:required true
-             :content
-             {"application/json"
-              {:schema tsx
-               :example (sm/generate schema)}}})
+            (let [example (sm/generate schema)
+                  example (sm/encode schema example {:registry sm/default-registry} sm/output-transformer)]
+              {:required true
+               :content
+               {"application/json"
+                {:schema tsx
+                 :example example}}}))
 
           (gen-method-doc [options mdata]
             (let [pschema (::sm/params mdata)
