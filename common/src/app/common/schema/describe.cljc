@@ -91,7 +91,7 @@
 (defmethod visit :select-keys [_ schema _ options] (describe* (m/deref schema) options))
 (defmethod visit :and [_ s children _] (str (str/join ", and " children) (-titled s)))
 (defmethod visit :enum [_ s children _options] (str "enum" (-titled s) " of " (str/join ", " children)))
-(defmethod visit :maybe [_ s children _] (str "nullable " (-titled s) (first children)))
+(defmethod visit :maybe [_ s children _] (str (first children) "?"))
 (defmethod visit :tuple [_ s children _] (str "vector " (-titled s) "with exactly " (count children) " items of type: " (str/join ", " children)))
 (defmethod visit :re [_ s _ options] (str "regex pattern " (-titled s) "matching " (pr-str (first (m/children s options)))))
 (defmethod visit :any [_ s _ _] (str "anything" (-titled s)))
@@ -187,7 +187,7 @@
                      "<untitled>")
         closed?  (:closed props)
         root?    (::root props)
-        level    (::level options 1)
+
         entries  (->> children
                       (map (fn [[k _ s]]
                              (str "  " (str/camel k)
@@ -210,14 +210,9 @@
 (defmethod visit :schema [_ schema children options]
   (visit ::m/schema schema children options))
 
-(def inc-level?
-  #{:merge :map})
-
 (defmethod visit ::m/schema [_ schema children options]
   (let [schema' (m/deref schema)
-        result  (describe* schema' (cond-> options
-                                     (inc-level? (m/type schema'))
-                                     (update ::level inc)))
+        result  (describe* schema' options)
         props   (merge
                  (m/properties schema)
                  (m/properties schema')
@@ -254,7 +249,7 @@
                    (m/deref)
                    :always
                    (mu/update-properties assoc ::root true))
-         options (assoc options ::m/walk-entry-vals true ::level 1)]
+         options (assoc options ::m/walk-entry-vals true)]
      (binding [*definitions* defs
                *path* (atom [])]
        (str (str/trim (describe* s options))

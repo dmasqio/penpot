@@ -71,10 +71,10 @@
   [:map {:title "ChangeWithMetadata"}
    [:changes ::changes]
    [:hint-origin {:optional true} :keyword]
-   [:hint-events {:optional true} [:vector :keyword]]])
+   [:hint-events {:optional true} [:vector :string]]])
 
-(sm/def! ::update-file
-  [:map {:title "UpdateFile"}
+(sm/def! ::update-file-params
+  [:map {:title "UpdateFileParams"}
    [:id ::sm/uuid]
    [:session-id ::sm/uuid]
    [:revn {:min 0} :int]
@@ -83,6 +83,14 @@
    [:changes-with-metadata {:optional true}
     [:vector ::change-with-metadata]]])
 
+(sm/def! ::update-file-result
+  [:vector {:title "UpdateFileResults"}
+   [:map {:title "UpdateFileResult"}
+    [:changes ::changes]
+    [:file-id ::sm/uuid]
+    [:id ::sm/uuid]
+    [:revn {:min 0} :int]
+    [:session-id ::sm/uuid]]])
 
 ;; --- HELPERS
 
@@ -155,6 +163,10 @@
    ::webhooks/event? true
    ::webhooks/batch-timeout (dt/duration "2m")
    ::webhooks/batch-key (webhooks/key-fn ::rpc/profile-id :id)
+
+   ::sm/params ::update-file-params
+   ::sm/result ::update-file-result
+
    ::doc/added "1.17"}
   [{:keys [::db/pool] :as cfg} {:keys [::rpc/profile-id id] :as params}]
   (db/with-atomic [conn pool]

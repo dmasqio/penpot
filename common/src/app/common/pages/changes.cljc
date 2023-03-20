@@ -22,6 +22,7 @@
    [app.common.types.components-list :as ctkl]
    [app.common.types.container :as ctn]
    [app.common.types.file :as ctf]
+   [app.common.types.file.media-object :as ctfm]
    [app.common.types.page :as ctp]
    [app.common.types.pages-list :as ctpl]
    [app.common.types.shape :as cts]
@@ -36,89 +37,155 @@
   [:multi {:dispatch :type :title "Operation"}
    [:set
     [:map {:title "SetOperation"}
+     [:type [:= :set]]
      [:attr :keyword]
      [:val :any]
      [:ignore-touched {:optional true} :boolean]
      [:ignore-geometry {:optional true} :boolean]]]
    [:set-touched
     [:map {:title "SetTouchedOperation"}
-     [:touched :any]]]
+     [:type [:= :set-touched]]
+     [:touched [:maybe [:set :keyword]]]]]
    [:set-remote-synced
     [:map {:title "SetRemoteSyncedOperation"}
-     [:remote-synced? :boolean]]]])
+     [:type [:= :set-remote-synced]]
+     [:remote-synced? [:maybe :boolean]]]]])
 
 (sm/def! ::change
-  [:multi {:dispatch :type :title "Change"}
-   [:set-option
-    [:map {:title "SetOptionChange"}
-     [:type [:= :set-option]]
-     [:page-id ::sm/uuid]
-     [:option [:union
-               [:keyword]
-               [:vector :keyword]]]
-     [:value :any]]]
+  [:schema
+   [:multi {:dispatch :type :title "Change"}
+    [:set-option
+     [:map {:title "SetOptionChange"}
+      [:type [:= :set-option]]
+      [:page-id ::sm/uuid]
+      [:option [:union
+                [:keyword]
+                [:vector :keyword]]]
+      [:value :any]]]
 
-   [:add-obj
-    [:map {:title "AddObjChange"}
-     [:type [:= :add-obj]]
-     [:id ::sm/uuid]
-     [:obj :any]
-     [:page-id {:optional true} ::sm/uuid]
-     [:component-id {:optional true} ::sm/uuid]
-     [:frame-id ::sm/uuid]
-     [:parent-id ::sm/uuid]
-     [:index :int]
-     [:ignore-touched {:optional true} :boolean]
-     ]]
+    [:add-obj
+     [:map {:title "AddObjChange"}
+      [:type [:= :add-obj]]
+      [:id ::sm/uuid]
+      [:obj [:map-of :keyword :any]]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:frame-id ::sm/uuid]
+      [:parent-id ::sm/uuid]
+      [:index [:maybe :int]]
+      [:ignore-touched {:optional true} :boolean]
+      ]]
 
-   [:mod-obj
-    [:map {:title "ModObjChange"}
-     [:id ::sm/uuid]
-     [:page-id {:optional true} ::sm/uuid]
-     [:component-id {:optional true} ::sm/uuid]
-     [:operations [:vector ::operation]]]]
+    [:mod-obj
+     [:map {:title "ModObjChange"}
+      [:id ::sm/uuid]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:operations [:vector ::operation]]]]
 
-   [:del-obj
-    [:map {:title "DelObjChange"}
-     [:id ::sm/uuid]
-     [:page-id {:optional true} ::sm/uuid]
-     [:component-id {:optional true} ::sm/uuid]
-     [:ignore-touched {:optional true} :boolean]]]
+    [:del-obj
+     [:map {:title "DelObjChange"}
+      [:id ::sm/uuid]
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:ignore-touched {:optional true} :boolean]]]
 
-   [:mov-objects
-    [:map {:title "MovObjectsChange"}
-     [:id ::sm/uuid]
-     [:page-id {:optional true} ::sm/uuid]
-     [:component-id {:optional true} ::sm/uuid]
-     [:ignore-touched {:optional true} :boolean]
-     [:parent-id ::sm/uuid]
-     [:shapes :any]
-     [:index :int]
-     [:after-shape :any]]]
+    [:mov-objects
+     [:map {:title "MovObjectsChange"}
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:ignore-touched {:optional true} :boolean]
+      [:parent-id ::sm/uuid]
+      [:shapes :any]
+      [:index {:optional true} :int]
+      [:after-shape {:optional true} :any]]]
 
-   [:add-page
-    [:map {:title "AddPageChange"}
-     [:id ::sm/uuid]
-     [:name :string]
-     [:page :any]]]
+    [:add-page
+     [:map {:title "AddPageChange"}
+      [:id ::sm/uuid]
+      [:name :string]
+      [:page :any]]]
 
-   [:mod-page
-    [:map {:title "ModPageChange"}
-     [:id ::sm/uuid]
-     [:name :string]]]
+    [:mod-page
+     [:map {:title "ModPageChange"}
+      [:id ::sm/uuid]
+      [:name :string]]]
 
-   [:del-page
-    [:map {:title "DelPageChange"}
-     [:id ::sm/uuid]]]
+    [:del-page
+     [:map {:title "DelPageChange"}
+      [:id ::sm/uuid]]]
 
-   [:mov-page
-    [:map {:title "MovPageChange"}
-     [:id ::sm/uuid]
-     [:index :int]]]
+    [:mov-page
+     [:map {:title "MovPageChange"}
+      [:id ::sm/uuid]
+      [:index :int]]]
 
-   ;; TODO: complete this
+    [:reg-objects
+     [:map {:title "RegObjectsChange"}
+      [:page-id {:optional true} ::sm/uuid]
+      [:component-id {:optional true} ::sm/uuid]
+      [:shapes [:vector ::sm/uuid]]]]
 
-   ])
+    [:add-color
+     [:map {:title "AddColorChange"}
+      [:color :any]]]
+
+    [:mod-color
+     [:map {:title "ModColorChange"}
+      [:color :any]]]
+
+    [:del-color
+     [:map {:title "DelColorChange"}
+      [:id ::sm/uuid]]]
+
+    [:add-recent-color
+     [:map {:title "AddRecentColorChange"}
+      [:color :any]]]
+
+    [:add-media
+     [:map {:title "AddMediaChange"}
+      [:object ::ctfm/media-object]]]
+
+    [:mod-media
+     [:map {:title "ModMediaChange"}
+      [:object ::ctfm/media-object]]]
+
+    [:del-media
+     [:map {:title "DelMediaChange"}
+      [:id ::sm/uuid]]]
+
+    [:add-component
+     [:map {:title "AddComponentChange"}
+      [:id ::sm/uuid]
+      [:name :string]
+      [:shapes [:vector :any]]
+      [:path {:optional true} :string]]]
+
+    [:mod-component
+     [:map {:title "ModCompoenentChange"}
+      [:id ::sm/uuid]
+      [:shapes {:optional true} [:vector :any]]
+      [:name {:optional true} :string]]]
+
+    [:del-component
+     [:map {:title "DelComponentChange"}
+      [:id ::sm/uuid]
+      ;; FIXME: remove `?` from the prop
+      [:skip-undelete? {:optional true} :boolean]]]
+
+    [:restore-component
+     [:map {:title "RestoreComponentChange"}
+      [:id ::sm/uuid]]]
+
+    [:purge-component
+     [:map {:title "PurgeComponentChange"}
+      [:id ::sm/uuid]]]
+
+    [:add-typography :any]
+    [:mod-typography :any]
+    [:del-typography :any]
+
+    ]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Specific helpers
@@ -343,8 +410,6 @@
                 (not= :frame (:type obj))
                 (as-> $$ (reduce (partial assign-frame-id frame-id) $$ (:shapes obj))))))
 
-
-
           (move-objects [objects]
             (let [valid?   (every? (partial is-valid-move? objects) shapes)
                   parent   (get objects parent-id)
@@ -506,9 +571,8 @@
       (and shape-ref group (not ignore) (not equal?)
            (not root-name?)
            (not (and ignore-geometry is-geometry?)))
-      (->
-        (update :touched cph/set-touched-group group)
-        (dissoc :remote-synced?))
+      (-> (update :touched cph/set-touched-group group)
+          (dissoc :remote-synced? :remote-synced))
 
       (nil? val)
       (dissoc attr)
@@ -526,11 +590,12 @@
 
 (defmethod process-operation :set-remote-synced
   [shape op]
-  ;; FIXME: remove the `?` from attr
+  ;; FIXME: remove the `?` from op attr
+  ;; FIXME: remove the `?` from shape attr
   (let [remote-synced? (:remote-synced? op)
         shape-ref (:shape-ref shape)]
     (if (or (nil? shape-ref) (not remote-synced?))
-      (dissoc shape :remote-synced?)
+      (dissoc shape :remote-synced? :remote-synced)
       (assoc shape :remote-synced? true))))
 
 (defmethod process-operation :default
@@ -538,7 +603,6 @@
   (ex/raise :type :not-implemented
             :code :operation-not-implemented
             :context {:type (:type op)}))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Component changes detection

@@ -15,7 +15,6 @@
    [cuerdas.core :as str]
    [malli.core :as m]
    [malli.error :as me]
-   [malli.experimental.describe :as med]
    [malli.generator :as mg]
    [malli.registry :as mr]
    [malli.transform :as mt]
@@ -114,15 +113,17 @@
   [schema]
   (m/explainer schema))
 
+(defn decode
+  ([schema val transformer]
+   (m/decode schema val transformer))
+  ([schema val options transformer]
+   (m/decode schema val options transformer)))
+
 (defn decoder
   ([schema transformer]
    (m/decoder schema transformer))
   ([schema options transformer]
    (m/decoder schema options transformer)))
-
-(defn describe
-  [schema]
-  (med/describe schema))
 
 (defn humanize-data
   [explain-data]
@@ -278,6 +279,21 @@
     ::oapi/unique-items true
     ::decode (fn [v]
                (into #{} non-empty-strings-xf (str/split v #"[\s,]+")))}})
+
+(def max-safe-int (int 1e6))
+(def min-safe-int (int -1e6))
+
+(def! ::safe-int
+  {:type ::safe-int
+   :pred #(and (int? %) (>= max-safe-int %) (>= % min-safe-int))
+   :type-properties
+   {:title "int"
+    :description "Safe Integer"
+    :error/message "expected to be int in safe range"
+    :gen/gen (generator :int)
+    ::oapi/type "integer"
+    ::oapi/format "int64"
+    ::decode parse-long}})
 
 ;; --- GENERATORS
 

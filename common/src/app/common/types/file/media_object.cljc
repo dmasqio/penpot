@@ -7,6 +7,7 @@
 (ns app.common.types.file.media-object
   (:require
    [app.common.spec :as us]
+   [app.common.schema :as sm]
    [clojure.spec.alpha :as s]))
 
 (s/def ::id uuid?)
@@ -28,3 +29,11 @@
                    ::mtype]
           :opt-un [::path]))
 
+(sm/def! ::media-object
+  [:map {:title "FileMediaObject"}
+   [:id ::sm/uuid]
+   [:name :string]
+   [:width ::sm/safe-int]
+   [:height ::sm/safe-int]
+   [:mtype :string]
+   [:path {:optional true} [:maybe :string]]])
