@@ -10,7 +10,9 @@
    [app.common.files.features :as ffeat]
    [app.common.logging :as l]
    [app.common.pages :as cp]
+   [app.common.pages.changes :as cpc]
    [app.common.pages.migrations :as pmg]
+   [app.common.schema :as sm]
    [app.common.spec :as us]
    [app.common.types.file :as ctf]
    [app.common.uuid :as uuid]
@@ -59,6 +61,28 @@
    (fn [o]
      (or (contains? o :changes)
          (contains? o :changes-with-metadata)))))
+
+
+;; --- SCHEMA
+(sm/def! ::changes
+  [:vector ::cpc/change])
+
+(sm/def! ::change-with-metadata
+  [:map {:title "ChangeWithMetadata"}
+   [:changes ::changes]
+   [:hint-origin {:optional true} :keyword]
+   [:hint-events {:optional true} [:vector :keyword]]])
+
+(sm/def! ::update-file
+  [:map {:title "UpdateFile"}
+   [:id ::sm/uuid]
+   [:session-id ::sm/uuid]
+   [:revn {:min 0} :int]
+   [:features {:optional true} [:set :keyword]]
+   [:changes {:optional true} ::changes]
+   [:changes-with-metadata {:optional true}
+    [:vector ::change-with-metadata]]])
+
 
 ;; --- HELPERS
 

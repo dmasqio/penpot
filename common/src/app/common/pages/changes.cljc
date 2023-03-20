@@ -32,18 +32,34 @@
 ;; SCHEMAS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(sm/def! ::operation
+  [:multi {:dispatch :type :title "Operation"}
+   [:set
+    [:map {:title "SetOperation"}
+     [:attr :keyword]
+     [:val :any]
+     [:ignore-touched {:optional true} :boolean]
+     [:ignore-geometry {:optional true} :boolean]]]
+   [:set-touched
+    [:map {:title "SetTouchedOperation"}
+     [:touched :any]]]
+   [:set-remote-synced
+    [:map {:title "SetRemoteSyncedOperation"}
+     [:remote-synced? :boolean]]]])
+
 (sm/def! ::change
   [:multi {:dispatch :type :title "Change"}
    [:set-option
-    [:map {:title "set-option" ::smd/inline true}
+    [:map {:title "SetOptionChange"}
      [:type [:= :set-option]]
      [:page-id ::sm/uuid]
      [:option [:union
                [:keyword]
                [:vector :keyword]]]
      [:value :any]]]
+
    [:add-obj
-    [:map {:title "add-obj" ::smd/inline true}
+    [:map {:title "AddObjChange"}
      [:type [:= :add-obj]]
      [:id ::sm/uuid]
      [:obj :any]
@@ -52,7 +68,57 @@
      [:frame-id ::sm/uuid]
      [:parent-id ::sm/uuid]
      [:index :int]
-     [:ignore-touched :boolean]]]])
+     [:ignore-touched {:optional true} :boolean]
+     ]]
+
+   [:mod-obj
+    [:map {:title "ModObjChange"}
+     [:id ::sm/uuid]
+     [:page-id {:optional true} ::sm/uuid]
+     [:component-id {:optional true} ::sm/uuid]
+     [:operations [:vector ::operation]]]]
+
+   [:del-obj
+    [:map {:title "DelObjChange"}
+     [:id ::sm/uuid]
+     [:page-id {:optional true} ::sm/uuid]
+     [:component-id {:optional true} ::sm/uuid]
+     [:ignore-touched {:optional true} :boolean]]]
+
+   [:mov-objects
+    [:map {:title "MovObjectsChange"}
+     [:id ::sm/uuid]
+     [:page-id {:optional true} ::sm/uuid]
+     [:component-id {:optional true} ::sm/uuid]
+     [:ignore-touched {:optional true} :boolean]
+     [:parent-id ::sm/uuid]
+     [:shapes :any]
+     [:index :int]
+     [:after-shape :any]]]
+
+   [:add-page
+    [:map {:title "AddPageChange"}
+     [:id ::sm/uuid]
+     [:name :string]
+     [:page :any]]]
+
+   [:mod-page
+    [:map {:title "ModPageChange"}
+     [:id ::sm/uuid]
+     [:name :string]]]
+
+   [:del-page
+    [:map {:title "DelPageChange"}
+     [:id ::sm/uuid]]]
+
+   [:mov-page
+    [:map {:title "MovPageChange"}
+     [:id ::sm/uuid]
+     [:index :int]]]
+
+   ;; TODO: complete this
+
+   ])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Specific helpers
@@ -460,6 +526,7 @@
 
 (defmethod process-operation :set-remote-synced
   [shape op]
+  ;; FIXME: remove the `?` from attr
   (let [remote-synced? (:remote-synced? op)
         shape-ref (:shape-ref shape)]
     (if (or (nil? shape-ref) (not remote-synced?))
