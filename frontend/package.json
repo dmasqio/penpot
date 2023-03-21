@@ -12,6 +12,7 @@
     "defaults"
   ],
   "scripts": {
+    "wasm-build": "asc wasm/index.ts --target debug",
     "compile-test": "clojure -M:dev:shadow-cljs compile test --config-merge '{:autorun false}'",
     "lint": "clj-kondo --parallel --lint src/",
     "lint-scss": "yarn run prettier -c resources/styles",
@@ -26,6 +27,7 @@
     "test-e2e-gui": "cypress open"
   },
   "devDependencies": {
+    "assemblyscript": "^0.27.1",
     "autoprefixer": "^10.4.13",
     "cypress": "^10.3.0",
     "cypress-file-upload": "^5.0.8",
