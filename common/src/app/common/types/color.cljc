@@ -7,12 +7,15 @@
 (ns app.common.types.color
   (:require
     [app.common.data :as d]
+    [app.common.schema :as sm]
+    [app.common.schema.openapi :as-alias oapi]
     [app.common.spec :as us]
     [app.common.text :as txt]
     [app.common.types.color.generic :as-alias color-generic]
     [app.common.types.color.gradient :as-alias color-gradient]
     [app.common.types.color.gradient.stop :as-alias color-gradient-stop]
-    [clojure.spec.alpha :as s]))
+    [clojure.spec.alpha :as s]
+    [clojure.test.check.generators :as tgen]))
 
 ;; TODO: maybe define ::color-hex-string with proper hex color spec?
 
@@ -47,6 +50,48 @@
                    ::color-gradient/end-y
                    ::color-gradient/width
                    ::color-gradient/stops]))
+
+(def rgb-color-re
+  #"^#(?:[0-9a-fA-F]{3}){1,2}$")
+
+(sm/def! ::rgb-color
+  {:type ::rgb-color
+   :pred #(and (string? %) (re-matches rgb-color-re %))
+   :type-properties
+   {:title "rgb-color"
+    :description "RGB Color String"
+    :error/message "expected a valid RGB color"
+
+    :gen/gen (->> tgen/any
+                  (tgen/fmap (fn [_]
+                               #?(:clj (format "%x" (rand-int 16rFFFFFF))
+                                  :cljs (.toString (rand-int 16rFFFFFF) 16))))
+                  (tgen/fmap (fn [x]
+                               (str "#" x))))
+
+    ::oapi/type "integer"
+    ::oapi/format "int64"}})
+
+;; (sm/def! ::gradient
+;;   [:map {:title "Gradient"}
+;;    [:type [:union :linear :radial]]
+;;    [:start-x ::sm/safe-number]
+;;    [:start-y ::sm/safe-number]
+;;    [:end-x ::sm/safe-number]
+;;    [:end-y ::sm/safe-number]
+;;    [:width ::sm/safe-number]
+;;    [:stops
+;;     [:vector {:min 1}
+;;      [:map "GradientStop"
+;;       [:color ::rgb-color]
+;;       [:opacity ::sm/safe-number]
+;;       [:offset ::sm/safe-number]]]]])
+
+
+
+
+
+
 
 ;; --- COLORS
 

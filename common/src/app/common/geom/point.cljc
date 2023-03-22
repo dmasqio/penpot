@@ -42,12 +42,10 @@
   (s/keys :req-un [::x ::y]))
 
 (sm/def! ::point
-  (letfn [(decode [s]
-            (let [[x y] (->> s (str/split ",") (map parse-double))]
-              (->Point x y)))
+  (letfn [(decode [p]
+            (map->Point p))
           (encode [p]
-            ;;FIXME performance
-            (dm/str (:x p) "," (:y p)))]
+            (into {} p))]
     {:type ::points
      :pred point?
      :type-properties

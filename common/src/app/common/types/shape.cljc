@@ -281,16 +281,14 @@
    [:width ::sm/safe-number]
    [:height ::sm/safe-number]])
 
-;; FIXME: gpt/point
-;; (sm/def! ::points
-;;   [:vector ::gpt/point])
+(sm/def! ::points
+  [:vector ::gpt/point])
 
-;; FIXME ::crc/gradient
 ;; (sm/def! ::fill
 ;;   [:map {:title "Fill" :min 1}
-;;    [:fill-color {:optional true} :any]
+;;    [:fill-color {:optional true} ::ctc/rgb-color]
 ;;    [:fill-opacity {:optional true} ::sm/safe-number]
-;;    [:fill-color-gradient {:optional true} ::crc/gradient]
+;;    [:fill-color-gradient {:optional true} ::ctc/gradient]
 ;;    [:fill-color-ref-file {:optional true} [:maybe ::sm/uuid]]
 ;;    [:fill-color-ref-id {:optional true} [:maybe ::sm/uuid]]])
 
@@ -322,7 +320,7 @@
    [:component-root {:optional true} :boolean]
    [:shape-ref {:optional true} ::sm/uuid]
    [:selrect {:optional true} ::selrect]
-   ;; [:points {:optional true} ::points]
+   [:points {:optional true} ::points]
    [:blocked {:optional true} :boolean]
    [:collapsed {:optional true} :boolean]
    [:locked {:optional true} :boolean]
