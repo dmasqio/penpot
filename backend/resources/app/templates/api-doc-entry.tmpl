@@ -68,30 +68,19 @@
     {% endif %}
 
     {% if item.spec %}
-      <h4>SPEC EXPLAIN:</h4>
+      <h4>PARAMS (SPEC):</h4>
       <section class="padded-section">
         <pre class="spec-explain">{{item.spec}}</pre>
       </section>
     {% endif %}
 
-    <div class="two-columns">
-      <div class="column">
-        {% if item.params-schema %}
-          <h4>PARAMS:</h4>
-          <section class="padded-section">
-            <pre class="params-schema">{{item.params-schema}}</pre>
-          </section>
-        {% endif %}
-      </div>
-      <div class="column">
-        {% if item.params-form %}
-          <h4>PARAMS:</h4>
-          <section class="padded-section">
-            <pre class="params-form">{{item.params-form}}</pre>
-          </section>
-        {% endif %}
-      </div>
-    </div>
+    {% if item.params-schema %}
+      <h4>PARAMS:</h4>
+      <section class="padded-section">
+        <pre class="params-schema">{{item.params-schema}}</pre>
+      </section>
+    {% endif %}
+
     {% if item.result-schema %}
       <h4>RESPONSE:</h4>
       <section class="padded-section">
@@ -100,7 +89,7 @@
     {% endif %}
 
     {% if item.webhook-schema %}
-      <h4>WEBHOOK EVENT:</h4>
+      <h4>WEBHOOK PAYLOAD:</h4>
       <section class="padded-section">
         <pre class="webhook">{{item.webhook-schema}}</pre>
       </section>
